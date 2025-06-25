@@ -1,286 +1,796 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MolacesGPT</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --surface-color: #1e293b;
-            --text-color: #f8fafc;
-            --accent-color: #3b82f6;
-            --border-color: #334155;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
-
-        body {
-            background: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-            flex: 1;
-            width: 100%;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo {
-            font-size: 2.5rem;
-            color: var(--accent-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .chat-container {
-            background: var(--surface-color);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            height: 70vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .message {
-            margin-bottom: 1.5rem;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .message.user {
-            text-align: right;
-        }
-
-        .message-content {
-            display: inline-block;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            max-width: 80%;
-            background: var(--bg-color);
-            line-height: 1.5;
-        }
-
-        .message.bot .message-content {
-            background: var(--surface-color);
-            text-align: left;
-        }
-
-        .input-container {
-            position: relative;
-        }
-
-        textarea {
-            width: 100%;
-            background: var(--surface-color);
-            color: var(--text-color);
-            border: 2px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 1rem 4rem 1rem 1rem;
-            resize: none;
-            min-height: 56px;
-            font-size: 1rem;
-        }
-
-        button.send-btn {
-            position: absolute;
-            right: 1rem;
-            bottom: 1rem;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        button.send-btn:hover {
-            opacity: 0.9;
-        }
-
-        .loading-indicator {
-            display: none;
-            position: absolute;
-            right: 1rem;
-            bottom: 1.5rem;
-            color: var(--text-color);
-        }
-
-        pre code {
-            border-radius: 0.5rem;
-            padding: 1rem !important;
-        }
-
-        .copy-btn {
-            position: absolute;
-            right: 0.5rem;
-            top: 0.5rem;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>3D English Pool - Player vs AI</title>
+  <style>
+    html, body {margin:0;padding:0;width:100vw;height:100vh;overflow:hidden;background:#181a1b;}
+    #ui-bar {position:absolute;top:0;left:0;width:100vw;z-index:10;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
+    #info {color:#fff;font-family:'Segoe UI',Arial,sans-serif;background:rgba(0,0,0,0.4);padding:10px 32px 6px 32px;border-radius:12px;font-size:1.15rem;letter-spacing:1px;box-shadow:0 4px 24px rgba(0,0,0,0.4);margin-top:8px;margin-bottom:3px;min-width:340px;text-align:center;pointer-events:auto;transition:opacity 0.4s;max-width:98vw;}
+    #turn-indicator {color:#ffd700;font-size:1.1rem;font-family:'Segoe UI',Arial,sans-serif;background:rgba(30,30,30,0.8);padding:6px 22px 5px 22px;border-radius:10px;margin-bottom:2px;min-width:180px;text-align:center;pointer-events:auto;max-width:98vw;}
+    #scoreboard {color:#fff;font-family:'Segoe UI',Arial,sans-serif;background:rgba(0,0,0,0.5);padding:5px 19px 4px 19px;border-radius:8px;font-size:1rem;letter-spacing:1px;margin-bottom:7px;text-align:center;pointer-events:auto;max-width:98vw;}
+    #restart-btn {display:none;position:absolute;left:50%;top:90px;transform:translate(-50%,0);z-index:30;font-size:1.15rem;background:#2a2929;color:#ffd700;border:none;outline:none;padding:12px 46px;border-radius:14px;cursor:pointer;font-family:'Segoe UI',Arial,sans-serif;letter-spacing:1px;box-shadow:0 4px 24px rgba(0,0,0,0.5);transition:background 0.2s;pointer-events:auto;text-align:center;}
+    #restart-btn:hover {background:#44403f;}
+    canvas.crosshair {cursor:crosshair!important;}
+    .foul-indicator {color:#ff3e3e;font-weight:bold;text-shadow:0 0 10px #700;}
+    @media (max-width:600px) {
+      #info,#turn-indicator,#scoreboard{font-size:.99rem;padding-left:7px;padding-right:7px;}
+      #restart-btn{font-size:1rem;padding:9px 22px;}
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">MolacesGPT</div>
-            <p>Ваш интеллектуальный AI-ассистент</p>
-        </div>
-
-        <div class="chat-container">
-            <div class="chat-messages" id="chatbox">
-                <div class="message bot">
-                    <div class="message-content">
-                        Привет! Я ваш персональный AI-помощник. Чем могу помочь?
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-container">
-                <textarea 
-                    id="message" 
-                    placeholder="Напишите ваш запрос..."
-                    rows="1"
-                ></textarea>
-                <button class="send-btn" onclick="sendMessage()">Отправить</button>
-                <div class="loading-indicator" id="loading">⌛</div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const converter = new showdown.Converter();
-        let isProcessing = false;
-
-        async function sendMessage() {
-            if (isProcessing) return;
-            
-            const message = document.getElementById('message').value.trim();
-            if (!message) return;
-
-            try {
-                isProcessing = true;
-                document.getElementById('loading').style.display = 'block';
-                addMessage(message, 'user');
-                document.getElementById('message').value = '';
-
-                const response = await getAIResponse(message);
-                const formattedResponse = processMarkdown(response);
-                addMessage(formattedResponse, 'bot');
-                
-            } catch (error) {
-                addMessage(`Ошибка: ${error.message}`, 'bot');
-            } finally {
-                isProcessing = false;
-                document.getElementById('loading').style.display = 'none';
-                scrollToBottom();
+  <div id="ui-bar">
+    <div id="info">English Pool Rules! Player vs AI. Your turn: Tap the cue ball to aim and shoot. Drag elsewhere to rotate.</div>
+    <div id="turn-indicator">Player's Turn</div>
+    <div id="scoreboard"></div>
+  </div>
+  <button id="restart-btn">Restart Game</button>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.127.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.127.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    let scene, camera, renderer, controls;
+    let table, borderMat, pocketMat, pockets = [], pocketRadii = [];
+    let balls = [], ballColors, ballRadius, cueBall;
+    let isAiming = false, aimStart = null, aimEnd = null, selectedBall = null;
+    let raycaster = new THREE.Raycaster();
+    let mouse = new THREE.Vector2();
+    let arrowHelper = null, aimingCueBall = false;
+    // TABLE SIZE MODIFIED: Slightly smaller table
+    const TABLE_W = 16, TABLE_H = 8, TABLE_F = 0.4;
+    const FRICTION = 0.994;
+    const MIN_VEL = 0.018;
+    let gameEnded = false;
+    const restartBtn = document.getElementById('restart-btn');
+    const turnIndicator = document.getElementById('turn-indicator');
+    const scoreboard = document.getElementById('scoreboard');
+    const info = document.getElementById('info');
+    let turn = "player";
+    let aiThinking = false;
+    let aiShotPlanned = null;
+    let ballsMoving = false;
+    let awaitingNextTurn = false;
+    let lastPockets = [];
+    let lastFoul = false;
+    let foulPending = false;
+    let firstContact = null;
+    let breakShot = true;
+    const BALL_LAYOUT = [
+      0xffffff,
+      0xffe000,0xffe000,0xffe000,0xffe000,0xffe000,0xffe000,0xffe000,
+      0xd70000,0xd70000,0xd70000,0xd70000,0xd70000,0xd70000,0xd70000,
+      0x202020
+    ];
+    let playerColor = null;
+    let aiColor = null;
+    let playerPotted = 0, aiPotted = 0;
+    let playerTurnFoul = false;
+    let blackPotted = false;
+    function updateScoreboard() {
+      let scoreTxt = "<span style='color:#ffe000'>Yellow</span>: ";
+      let yRemain = 7 - balls.slice(1,8).filter(b=>b.userData.pocketed).length;
+      let rRemain = 7 - balls.slice(8,15).filter(b=>b.userData.pocketed).length;
+      let rTxt = "<span style='color:#d70000'>Red</span>: ";
+      if (playerColor == "yellow") {
+        scoreTxt += yRemain + " (You) &nbsp;&nbsp; ";
+        scoreTxt += rTxt + rRemain + " (AI)";
+      } else if(playerColor == "red") {
+        scoreTxt = rTxt + rRemain + " (You) &nbsp;&nbsp; ";
+        scoreTxt += "<span style='color:#ffe000'>Yellow</span>: " + yRemain + " (AI)";
+      } else {
+        scoreTxt += yRemain + " &nbsp;&nbsp; " + rTxt + rRemain;
+      }
+      if (lastFoul && awaitingNextTurn) {
+        scoreTxt += " &nbsp; <span class='foul-indicator'>FOUL! Free shot</span>";
+      }
+      scoreboard.innerHTML = scoreTxt;
+    }
+    function initScene() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x181a1b);
+      // Make pool table almost fill the viewport
+      // Dynamically calculate camera distance to fit the table
+      let aspect = window.innerWidth / window.innerHeight;
+      let fov = 60;
+      camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100);
+      // Use trigonometry to fit the table diagonally in the view
+      let tableDiag = Math.sqrt(TABLE_W * TABLE_W + TABLE_H * TABLE_H);
+      let fitHeight = TABLE_H + 2.3; // add slight margin
+      let fitWidth = TABLE_W + 2.3;
+      let fit = Math.max(fitHeight, fitWidth / aspect);
+      let distance = (fit/2) / Math.tan((fov/2) * Math.PI/180);
+      camera.position.set(0, distance * 0.6, distance * 1.05); // slightly above and angled
+      camera.lookAt(0, 1, 0);
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 1, 0);
+      controls.enableDamping = true;
+      controls.maxPolarAngle = Math.PI / 2.1;
+      let amb = new THREE.AmbientLight(0xffffff, 0.55);
+      scene.add(amb);
+      let dir = new THREE.DirectionalLight(0xffffff, 0.6);
+      dir.position.set(0, 25, 10);
+      scene.add(dir);
+      let tableMat = new THREE.MeshLambertMaterial({ color: 0x196445 });
+      let tableGeo = new THREE.BoxBufferGeometry(TABLE_W, TABLE_F, TABLE_H);
+      table = new THREE.Mesh(tableGeo, tableMat);
+      table.position.y = 0;
+      scene.add(table);
+      borderMat = new THREE.MeshLambertMaterial({ color: 0x2d1400 });
+      let bHeight = 0.35, bWidth = 0.5, bLen = TABLE_W + bWidth;
+      let borderGeoLong = new THREE.BoxBufferGeometry(bLen, bHeight, bWidth);
+      let borderGeoShort = new THREE.BoxBufferGeometry(bWidth, bHeight, TABLE_H + bWidth);
+      for (let i = 0; i < 2; i++) {
+        let border1 = new THREE.Mesh(borderGeoLong, borderMat);
+        border1.position.set(0, bHeight / 2 + TABLE_F/2, (TABLE_H/2 + bWidth/2) * (i ? 1 : -1));
+        let border2 = new THREE.Mesh(borderGeoShort, borderMat);
+        border2.position.set((TABLE_W/2 + bWidth/2) * (i ? 1 : -1), bHeight / 2 + TABLE_F/2, 0);
+        scene.add(border1, border2);
+      }
+      let cornerPocketRadius = 0.85;
+      let sidePocketRadius = 0.68;
+      pocketMat = new THREE.MeshLambertMaterial({ color: 0x18181a });
+      let pocketPos = [
+        [TABLE_W/2, TABLE_H/2],
+        [TABLE_W/2, -TABLE_H/2],
+        [-TABLE_W/2, TABLE_H/2],
+        [-TABLE_W/2, -TABLE_H/2],
+        [0, TABLE_H/2],
+        [0, -TABLE_H/2]
+      ];
+      pockets = [];
+      for(let i=0;i<pocketPos.length;i++) {
+        let pos = pocketPos[i];
+        let pr = (i < 4) ? cornerPocketRadius : sidePocketRadius;
+        let mesh;
+        if(i < 4) {
+          let geo = new THREE.CircleGeometry(pr, 36);
+          mesh = new THREE.Mesh(geo, pocketMat);
+          mesh.position.set(pos[0], TABLE_F/2 + 0.021, pos[1]);
+          mesh.rotation.x = -Math.PI/2;
+        } else {
+          let startAngle = (i === 4) ? 0 : Math.PI;
+          let geo = new THREE.CircleGeometry(pr, 36, startAngle, Math.PI);
+          mesh = new THREE.Mesh(geo, pocketMat);
+          mesh.position.set(pos[0], TABLE_F/2 + 0.021, pos[1]);
+          mesh.rotation.x = -Math.PI/2;
+        }
+        scene.add(mesh);
+        pockets.push(mesh);
+      }
+      pocketRadii = [cornerPocketRadius, cornerPocketRadius, cornerPocketRadius, cornerPocketRadius, sidePocketRadius, sidePocketRadius];
+      ballColors = BALL_LAYOUT;
+      balls = [];
+      ballRadius = 0.33;
+      let ballGeo = new THREE.SphereBufferGeometry(ballRadius, 36, 36);
+      cueBall = new THREE.Mesh(ballGeo, new THREE.MeshPhongMaterial({ color: ballColors[0] }));
+      cueBall.position.set(-6.5, TABLE_F/2 + ballRadius, 0);
+      cueBall.userData = { velocity: new THREE.Vector3(), pocketed: false };
+      balls.push(cueBall);
+      scene.add(cueBall);
+      // --------- THIS LINE MOVES THE TRIANGLE FORWARD -----------
+      let triangleStart = { x: 2.5, z: 0 };
+      // ----------------------------------------------------------
+      let colorsOrder = [1,8,2,9,15,3,10,4,11,5,12,6,13,7,14];
+      let idx = 0;
+      for(let r=0;r<5;r++){
+        for(let c=0;c<=r;c++){
+          let x = triangleStart.x + r * (ballRadius*2 + 0.01);
+          let z = triangleStart.z + (c - r/2) * (ballRadius*2 + 0.01) * 1.01;
+          let colorIdx = colorsOrder[idx];
+          let mat = new THREE.MeshPhongMaterial({ color: ballColors[colorIdx] });
+          let ball = new THREE.Mesh(ballGeo, mat);
+          ball.position.set(x, TABLE_F/2 + ballRadius, z);
+          ball.userData = { velocity: new THREE.Vector3(), pocketed: false };
+          balls[colorIdx] = ball;
+          scene.add(ball);
+          idx++;
+        }
+      }
+      addEventListeners();
+      playerColor = null;
+      aiColor = null;
+      playerPotted = 0;
+      aiPotted = 0;
+      playerTurnFoul = false;
+      blackPotted = false;
+      breakShot = true;
+      lastFoul = false;
+      foulPending = false;
+      awaitingNextTurn = false;
+      lastPockets = [];
+      firstContact = null;
+      updateScoreboard();
+      if (info.style.display !== "none") {
+        setTimeout(()=>{ info.style.opacity=0; setTimeout(()=>{info.style.display="none";},400); }, 2000);
+      }
+    }
+    function ballColorType(idx) {
+      if(idx >= 1 && idx <= 7) return "yellow";
+      if(idx >= 8 && idx <= 14) return "red";
+      if(idx == 15) return "black";
+      return null;
+    }
+    function addEventListeners() {
+      renderer.domElement.addEventListener('pointermove', pointerMoveHandler, false);
+      renderer.domElement.addEventListener('pointerdown', pointerDownHandler, true);
+      renderer.domElement.addEventListener('pointerup', pointerUpHandler, false);
+      renderer.domElement.addEventListener('touchstart', touchStartHandler, {passive:false});
+      renderer.domElement.addEventListener('touchmove', touchMoveHandler, {passive:false});
+      renderer.domElement.addEventListener('touchend', touchEndHandler, {passive:false});
+      window.addEventListener('resize', resizeHandler);
+    }
+    function removeEventListeners() {
+      renderer.domElement.removeEventListener('pointermove', pointerMoveHandler, false);
+      renderer.domElement.removeEventListener('pointerdown', pointerDownHandler, true);
+      renderer.domElement.removeEventListener('pointerup', pointerUpHandler, false);
+      renderer.domElement.removeEventListener('touchstart', touchStartHandler, {passive:false});
+      renderer.domElement.removeEventListener('touchmove', touchMoveHandler, {passive:false});
+      renderer.domElement.removeEventListener('touchend', touchEndHandler, {passive:false});
+      window.removeEventListener('resize', resizeHandler);
+    }
+    function pointerMoveHandler(e) {
+      if(turn !== "player" || gameEnded || aiThinking || awaitingNextTurn) return;
+      let rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      let intersects = raycaster.intersectObject(cueBall, false);
+      if (intersects.length > 0 && cueBall.userData.velocity.length() < 0.001 && !cueBall.userData.pocketed && !gameEnded) {
+        renderer.domElement.classList.add('crosshair');
+      } else {
+        renderer.domElement.classList.remove('crosshair');
+      }
+      if (isAiming) {
+        let pt = getTableIntersect(e);
+        pt.y = TABLE_F/2 + ballRadius;
+        aimEnd = pt.clone();
+        if (arrowHelper) scene.remove(arrowHelper);
+        let dir = new THREE.Vector3().subVectors(aimStart, aimEnd);
+        if (dir.length() > 0.2) {
+          dir.normalize();
+          arrowHelper = new THREE.ArrowHelper(dir, cueBall.position, Math.min(4, aimStart.distanceTo(aimEnd)), 0xffff00, 0.33, 0.3);
+          scene.add(arrowHelper);
+        }
+      }
+    }
+    function pointerDownHandler(e) {
+      if(turn !== "player" || gameEnded || aiThinking || awaitingNextTurn) return;
+      let rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      let intersects = raycaster.intersectObject(cueBall, false);
+      let hitCueBall = false;
+      if (intersects.length > 0 && cueBall.userData.velocity.length() < 0.001 && !cueBall.userData.pocketed) {
+        hitCueBall = true;
+      } else {
+        let plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(TABLE_F/2 + ballRadius));
+        let pt = new THREE.Vector3();
+        raycaster.ray.intersectPlane(plane, pt);
+        if (pt.distanceTo(cueBall.position) < ballRadius*1.7 && cueBall.userData.velocity.length() < 0.001 && !cueBall.userData.pocketed) {
+          hitCueBall = true;
+        }
+      }
+      if (hitCueBall) {
+        isAiming = true;
+        aimingCueBall = true;
+        selectedBall = cueBall;
+        let pt = getTableIntersect(e);
+        pt.y = TABLE_F/2 + ballRadius;
+        aimStart = pt.clone();
+        aimEnd = aimStart.clone();
+        controls.enabled = false;
+        e.preventDefault();
+        e.stopPropagation();
+      } else {
+        aimingCueBall = false;
+        controls.enabled = true;
+      }
+    }
+    function pointerUpHandler(e) {
+      if(turn !== "player" || gameEnded || aiThinking || awaitingNextTurn) return;
+      if (isAiming && aimingCueBall && selectedBall) {
+        let shotVec = new THREE.Vector3().subVectors(aimStart, aimEnd);
+        shotVec.y = 0;
+        if (shotVec.length() > 0.1) {
+          selectedBall.userData.velocity.add(shotVec.multiplyScalar(0.09));
+          selectedBall.userData.velocity.y = 0;
+          ballsMoving = true;
+          awaitingNextTurn = false;
+          setTimeout(waitForBallsStop, 400);
+        }
+      }
+      if (arrowHelper) {
+        scene.remove(arrowHelper);
+        arrowHelper = null;
+      }
+      isAiming = false;
+      aimingCueBall = false;
+      selectedBall = null;
+      controls.enabled = true;
+    }
+    function getTouchEventXY(ev) {
+      let touch = ev.touches && ev.touches.length ? ev.touches[0] : (ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0] : null);
+      if (!touch) return {x:0, y:0};
+      let rect = renderer.domElement.getBoundingClientRect();
+      let x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+      let y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+      return {x:x, y:y, clientX: touch.clientX, clientY: touch.clientY};
+    }
+    function touchStartHandler(e) {
+      if(turn !== "player" || gameEnded || aiThinking || awaitingNextTurn) return;
+      let {x, y, clientX, clientY} = getTouchEventXY(e);
+      mouse.x = x;
+      mouse.y = y;
+      raycaster.setFromCamera(mouse, camera);
+      let plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(TABLE_F/2 + ballRadius));
+      let pt = new THREE.Vector3();
+      raycaster.ray.intersectPlane(plane, pt);
+      if (pt.distanceTo(cueBall.position) < ballRadius*1.7 && cueBall.userData.velocity.length() < 0.001 && !cueBall.userData.pocketed) {
+        isAiming = true;
+        aimingCueBall = true;
+        selectedBall = cueBall;
+        pt.y = TABLE_F/2 + ballRadius;
+        aimStart = pt.clone();
+        aimEnd = aimStart.clone();
+        controls.enabled = false;
+        e.preventDefault();
+      } else {
+        aimingCueBall = false;
+        controls.enabled = true;
+      }
+    }
+    function touchMoveHandler(e) {
+      if(turn !== "player" || gameEnded || aiThinking || awaitingNextTurn) return;
+      if (isAiming) {
+        let {x, y, clientX, clientY} = getTouchEventXY(e);
+        mouse.x = x;
+        mouse.y = y;
+        raycaster.setFromCamera(mouse, camera);
+        let plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(TABLE_F/2 + ballRadius));
+        let pt = new THREE.Vector3();
+        raycaster.ray.intersectPlane(plane, pt);
+        pt.y = TABLE_F/2 + ballRadius;
+        aimEnd = pt.clone();
+        if (arrowHelper) scene.remove(arrowHelper);
+        let dir = new THREE.Vector3().subVectors(aimStart, aimEnd);
+        if (dir.length() > 0.2) {
+          dir.normalize();
+          arrowHelper = new THREE.ArrowHelper(dir, cueBall.position, Math.min(4, aimStart.distanceTo(aimEnd)), 0xffff00, 0.33, 0.3);
+          scene.add(arrowHelper);
+        }
+        e.preventDefault();
+      }
+    }
+    function touchEndHandler(e) {
+      if(turn !== "player" || gameEnded || aiThinking || awaitingNextTurn) return;
+      if (isAiming && aimingCueBall && selectedBall) {
+        let shotVec = new THREE.Vector3().subVectors(aimStart, aimEnd);
+        shotVec.y = 0;
+        if (shotVec.length() > 0.1) {
+          selectedBall.userData.velocity.add(shotVec.multiplyScalar(0.09));
+          selectedBall.userData.velocity.y = 0;
+          ballsMoving = true;
+          awaitingNextTurn = false;
+          setTimeout(waitForBallsStop, 400);
+        }
+      }
+      if (arrowHelper) {
+        scene.remove(arrowHelper);
+        arrowHelper = null;
+      }
+      isAiming = false;
+      aimingCueBall = false;
+      selectedBall = null;
+      controls.enabled = true;
+      e.preventDefault();
+    }
+    function resizeHandler() {
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    function getTableIntersect(event) {
+      let rect = renderer.domElement.getBoundingClientRect();
+      let ex = event.touches && event.touches.length ? event.touches[0].clientX : event.clientX;
+      let ey = event.touches && event.touches.length ? event.touches[0].clientY : event.clientY;
+      mouse.x = ((ex - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((ey - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      let plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(TABLE_F/2 + ballRadius));
+      let pt = new THREE.Vector3();
+      raycaster.ray.intersectPlane(plane, pt);
+      pt.y = TABLE_F/2 + ballRadius;
+      return pt;
+    }
+    function respawnCueBall(foul=true) {
+      let spawnX = -6.5, spawnZ = 0, found = false;
+      for(let dz=-4.0; dz<=4.0; dz+=0.2) {
+        let tryZ = dz;
+        let ok = true;
+        for(let i=1;i<balls.length;i++){
+          let b = balls[i];
+          if (!b) continue;
+          if (b.userData && b.userData.pocketed) continue;
+          let dx = b.position.x - spawnX;
+          let dz2 = b.position.z - tryZ;
+          if (Math.sqrt(dx*dx+dz2*dz2) < 2*ballRadius+0.01) {
+            ok = false;
+            break;
+          }
+        }
+        if(ok) {
+          spawnZ = tryZ;
+          found = true;
+          break;
+        }
+      }
+      cueBall.position.set(spawnX, TABLE_F/2 + ballRadius, spawnZ);
+      cueBall.userData.velocity.set(0,0,0);
+      cueBall.userData.pocketed = false;
+      cueBall.visible = true;
+      if(foul) {
+        lastFoul = true;
+        awaitingNextTurn = true;
+        updateScoreboard();
+        setTimeout(()=>{
+          lastFoul = false;
+          awaitingNextTurn = false;
+          updateScoreboard();
+          if(turn === "player") turnIndicator.innerHTML = "Player's Turn";
+          else turnIndicator.innerHTML = "AI's Turn";
+        }, 900);
+      }
+    }
+    function updateBalls() {
+      if(gameEnded) return;
+      let allColoredPocketed = balls.slice(1,15).every(b=>b.userData.pocketed);
+      ballsMoving = false;
+      for (let i = 0; i < balls.length; ++i) {
+        let ball = balls[i];
+        if (!ball || ball.userData.pocketed) continue;
+        ball.position.add(new THREE.Vector3(ball.userData.velocity.x, 0, ball.userData.velocity.z));
+        ball.userData.velocity.multiplyScalar(FRICTION);
+        ball.userData.velocity.y = 0;
+        if (ball.userData.velocity.length() < MIN_VEL) ball.userData.velocity.set(0,0,0);
+        if (ball.userData.velocity.length() > 0.001) ballsMoving = true;
+        let bx = Math.abs(ball.position.x), bz = Math.abs(ball.position.z);
+        let maxX = TABLE_W/2 - ballRadius - 0.05, maxZ = TABLE_H/2 - ballRadius - 0.05;
+        if (bx > maxX) {
+          ball.position.x = THREE.MathUtils.clamp(ball.position.x, -maxX, maxX);
+          ball.userData.velocity.x *= -0.88;
+        }
+        if (bz > maxZ) {
+          ball.position.z = THREE.MathUtils.clamp(ball.position.z, -maxZ, maxZ);
+          ball.userData.velocity.z *= -0.88;
+        }
+        ball.position.y = TABLE_F/2 + ballRadius;
+        for(let p=0;p<pockets.length;p++) {
+          let pr = pocketRadii[p];
+          let dx = ball.position.x - pockets[p].position.x;
+          let dz = ball.position.z - pockets[p].position.z;
+          let dist = Math.sqrt(dx*dx + dz*dz);
+          if (dist < pr) {
+            if(i===0){
+              ball.userData.pocketed = true;
+              ball.visible = false;
+              ball.userData.velocity.set(0,0,0);
+              setTimeout(()=>respawnCueBall(true), 800);
+              foulPending = true;
+            } else {
+              ball.userData.pocketed = true;
+              ball.visible = false;
+              ball.userData.velocity.set(0,0,0);
+              lastPockets.push(i);
+              if(i===15) blackPotted = true;
             }
+          }
         }
-
-        async function getAIResponse(prompt) {
-            const encodedPrompt = encodeURIComponent(prompt);
-            const response = await fetch(`https://text.pollinations.ai/${encodedPrompt}`, {
-                headers: {
-                    'User-Agent': 'MolacesGPT/1.0 (+https://molacesgpt.example.com)'
-                }
-            });
-
-            if (!response.ok) throw new Error('Сервер не отвечает');
-            return await response.text();
-        }
-
-        function processMarkdown(text) {
-            let html = converter.makeHtml(text);
-            html = html.replace(/<pre><code class="(\w+)">/g, '<pre><code class="language-$1">');
-            return html;
-        }
-
-        function addMessage(content, type) {
-            const chatbox = document.getElementById('chatbox');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    ${content}
-                </div>
-            `;
-
-            chatbox.appendChild(messageDiv);
-            highlightCode(messageDiv);
-            addCopyButtons(messageDiv);
-            scrollToBottom();
-        }
-
-        function highlightCode(element) {
-            element.querySelectorAll('pre code').forEach(block => {
-                hljs.highlightElement(block);
-            });
-        }
-
-        function addCopyButtons(element) {
-            element.querySelectorAll('pre').forEach(pre => {
-                const button = document.createElement('button');
-                button.className = 'copy-btn';
-                button.textContent = 'Копировать';
-                button.onclick = () => {
-                    navigator.clipboard.writeText(pre.querySelector('code').textContent);
-                    button.textContent = 'Скопировано!';
-                    setTimeout(() => button.textContent = 'Копировать', 2000);
-                };
-                pre.prepend(button);
-            });
-        }
-
-        function scrollToBottom() {
-            const chatbox = document.getElementById('chatbox');
-            chatbox.scrollTop = chatbox.scrollHeight;
-        }
-
-        // Обработчики событий
-        document.getElementById('message').addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+      }
+      for (let i = 0; i < balls.length; ++i) {
+        for (let j = i + 1; j < balls.length; ++j) {
+          let b1 = balls[i], b2 = balls[j];
+          if (!b1 || !b2 || b1.userData.pocketed || b2.userData.pocketed) continue;
+          let d = Math.sqrt(
+            Math.pow(b1.position.x - b2.position.x, 2) + 
+            Math.pow(b1.position.z - b2.position.z, 2)
+          );
+          if (d < ballRadius * 2) {
+            let overlap = (ballRadius*2 - d) * 0.6;
+            let dir = new THREE.Vector3(
+              b1.position.x - b2.position.x,
+              0,
+              b1.position.z - b2.position.z
+            ).normalize();
+            b1.position.add(dir.clone().multiplyScalar(overlap/2));
+            b2.position.add(dir.clone().multiplyScalar(-overlap/2));
+            let v1 = b1.userData.velocity.clone();
+            let v2 = b2.userData.velocity.clone();
+            let dv = new THREE.Vector3(v1.x - v2.x, 0, v1.z - v2.z);
+            let dot = dv.dot(dir);
+            b1.userData.velocity.x -= dir.x * dot;
+            b1.userData.velocity.z -= dir.z * dot;
+            b2.userData.velocity.x += dir.x * dot;
+            b2.userData.velocity.z += dir.z * dot;
+            b1.userData.velocity.multiplyScalar(0.97);
+            b2.userData.velocity.multiplyScalar(0.97);
+            b1.userData.velocity.y = 0;
+            b2.userData.velocity.y = 0;
+            if(i===0 && !firstContact && Math.abs(dot) > 0.01) {
+              firstContact = j;
+            } else if(j===0 && !firstContact && Math.abs(dot) > 0.01) {
+              firstContact = i;
             }
-        });
+          }
+        }
+      }
+    }
+    function isLegalContact() {
+      if (!firstContact) return false;
+      if (playerColor === null) return true;
+      if (turn === "player" && onlyBlackLeft(playerColor)) {
+        return ballColorType(firstContact) === "black";
+      }
+      if (turn === "ai" && onlyBlackLeft(aiColor)) {
+        return ballColorType(firstContact) === "black";
+      }
+      let col = ballColorType(firstContact);
+      return (turn === "player" && col === playerColor) || (turn === "ai" && col === aiColor);
+    }
+    function isLegalPot(potted) {
+      if(!potted.length) return false;
+      if(playerColor === null) return true;
+      for(let i=0;i<potted.length;i++) {
+        let col = ballColorType(potted[i]);
+        if (turn === "player" && col === playerColor) return true;
+        if (turn === "ai" && col === aiColor) return true;
+      }
+      return false;
+    }
+    function onlyBlackLeft(color) {
+      let idxs = color === "yellow" ? [1,2,3,4,5,6,7] : [8,9,10,11,12,13,14];
+      return idxs.every(i=>balls[i].userData.pocketed);
+    }
+    function endGame(winner) {
+      gameEnded = true;
+      restartBtn.style.display = 'block';
+      let msg = '';
+      if(winner === "draw") {
+        msg = 'Game Over! Draw. Hit Restart to play again.';
+        turnIndicator.innerHTML = '';
+      } else {
+        msg = 'Game Over! ' + (winner === "player" ? "You" : "AI") + ' win! Hit Restart to play again.';
+        turnIndicator.innerHTML = (winner === "player" ? "You win!" : "AI wins!");
+      }
+      info.style.display = "none";
+      document.getElementById('info').innerText = msg;
+    }
+    function restartGame() {
+      document.body.removeChild(renderer.domElement);
+      removeEventListeners();
+      restartBtn.style.display = 'none';
+      document.getElementById('info').innerText = 'English Pool Rules! Player vs AI. Your turn: Tap the cue ball to aim and shoot. Drag elsewhere to rotate.';
+      info.style.opacity=1;
+      info.style.display="block";
+      setTimeout(()=>{ info.style.opacity=0; setTimeout(()=>{info.style.display="none";},400); }, 2000);
+      turnIndicator.innerHTML = "Player's Turn";
+      isAiming = false; aimStart = null; aimEnd = null; selectedBall = null; arrowHelper = null; aimingCueBall = false;
+      gameEnded = false;
+      turn = "player";
+      aiThinking = false;
+      aiShotPlanned = null;
+      ballsMoving = false;
+      awaitingNextTurn = false;
+      lastPockets = [];
+      lastFoul = false;
+      foulPending = false;
+      firstContact = null;
+      breakShot = true;
+      initScene();
+      animate();
+    }
+    restartBtn.addEventListener('click', restartGame);
 
-        document.getElementById('message').addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = `${this.scrollHeight}px`;
-        });
-    </script>
+    function waitForBallsStop() {
+      if (!ballsMoving) {
+        updateScoreboard();
+        let shooter = turn;
+        let potted = lastPockets.filter(i=>i>0);
+        let foul = false;
+        if(foulPending) foul = true;
+        if (breakShot) breakShot = false;
+
+        if(playerColor === null && potted.length) {
+          for(let i=0;i<potted.length;i++) {
+            if(ballColorType(potted[i])==="yellow") {
+              playerColor = (shooter==="player") ? "yellow" : "red";
+              aiColor = playerColor==="yellow" ? "red" : "yellow";
+              break;
+            }
+            if(ballColorType(potted[i])==="red") {
+              playerColor = (shooter==="player") ? "red" : "yellow";
+              aiColor = playerColor==="yellow" ? "red" : "yellow";
+              break;
+            }
+          }
+        }
+        if(!foul) {
+          if(!isLegalContact() && firstContact!==null) foul = true;
+          if(!firstContact) foul = true;
+        }
+        if(blackPotted) {
+          if(playerColor && aiColor) {
+            let playerDone = onlyBlackLeft(playerColor);
+            let aiDone = onlyBlackLeft(aiColor);
+            let lastBall = lastPockets[lastPockets.length-1];
+            let lastBallCol = ballColorType(lastBall);
+            let legalContact = isLegalContact();
+            if(shooter==="player" && lastBallCol==="black") {
+              if(playerDone && legalContact && !foul) {
+                endGame("player");
+              } else {
+                endGame("ai");
+              }
+              return;
+            }
+            if(shooter==="ai" && lastBallCol==="black") {
+              if(aiDone && legalContact && !foul) {
+                endGame("ai");
+              } else {
+                endGame("player");
+              }
+              return;
+            }
+          } else {
+            endGame(shooter==="player" ? "ai" : "player");
+            return;
+          }
+        }
+        if(playerColor!==null && potted.length) {
+          for(let i=0;i<potted.length;i++) {
+            let col = ballColorType(potted[i]);
+            if(col==="black" && !onlyBlackLeft(shooter==="player"?playerColor:aiColor)) foul = true;
+            if(shooter==="player" && col===aiColor) foul = true;
+            if(shooter==="ai" && col===playerColor) foul = true;
+          }
+        }
+        if(foul) {
+          lastFoul = true;
+          awaitingNextTurn = true;
+          turn = (turn==="player") ? "ai" : "player";
+          turnIndicator.innerHTML = (turn==="player" ? "Player's Turn" : "AI's Turn") + " <span class='foul-indicator'>&nbsp;FOUL! Free shot</span>";
+          setTimeout(()=>{
+            lastFoul = false;
+            awaitingNextTurn = false;
+            updateScoreboard();
+            if(turn === "ai") setTimeout(aiTurn, 900);
+          }, 900);
+        } else {
+          let legalPot = isLegalPot(potted);
+          if(legalPot && potted.length) {
+            turnIndicator.innerHTML = (turn==="player" ? "Player's Turn" : "AI's Turn") + " <span style='color:#24fc80'>&nbsp;Continue</span>";
+            setTimeout(()=>{
+              turnIndicator.innerHTML = (turn==="player" ? "Player's Turn" : "AI's Turn");
+              if(turn === "ai") setTimeout(aiTurn, 700);
+            }, 700);
+          } else {
+            turn = (turn==="player") ? "ai" : "player";
+            turnIndicator.innerHTML = (turn==="player" ? "Player's Turn" : "AI's Turn");
+            if(turn === "ai") setTimeout(aiTurn, 1200);
+          }
+        }
+        updateScoreboard();
+        lastPockets = [];
+        foulPending = false;
+        firstContact = null;
+      } else {
+        setTimeout(waitForBallsStop, 420);
+      }
+    }
+
+    function getNonPocketedBalls(color) {
+      let idxs = color === "yellow" ? [1,2,3,4,5,6,7] : [8,9,10,11,12,13,14];
+      return idxs.map(i=>balls[i]).filter(b=>b && !b.userData.pocketed);
+    }
+
+    // ----------- AI LOGIC MODIFIED HERE -----------
+    function aiTurn() {
+      if (gameEnded || aiThinking || awaitingNextTurn) return;
+      aiThinking = true;
+      let myColor = aiColor;
+      let targets;
+      if(myColor===null) {
+        targets = balls.slice(1,15).filter(b=>b && !b.userData.pocketed && ballColorType(balls.indexOf(b))!=="black");
+      } else if(onlyBlackLeft(myColor)) {
+        targets = [balls[15]];
+      } else {
+        targets = getNonPocketedBalls(myColor);
+      }
+      let cbPos = cueBall.position.clone();
+      let best = null, bestDist = 1e9, bestPocket = null, bestHit = null;
+      let found = false;
+      for(let b=0;b<targets.length;b++) {
+        let ball = targets[b];
+        let ballIdx = balls.indexOf(ball);
+        if(ball.userData.pocketed) continue;
+        for(let j=0;j<pockets.length;j++) {
+          let ppos = pockets[j].position.clone();
+          let ballToPocketDir = ppos.clone().sub(ball.position).normalize();
+          let impactPoint = ball.position.clone().sub(ballToPocketDir.clone().multiplyScalar(ballRadius*2));
+          let cueToImpact = impactPoint.clone().sub(cbPos);
+          let dist = cueToImpact.length();
+          let blocked = false;
+          // FIXED: Block for ALL non-pocketed balls except cueBall and the target ball
+          for (let k = 0; k < balls.length; k++) {
+            if(!balls[k] || balls[k]===cueBall || balls[k]===ball || balls[k].userData.pocketed) continue;
+            let toImpact = impactPoint.clone().sub(cbPos);
+            let toBlock = balls[k].position.clone().sub(cbPos);
+            let proj = toBlock.dot(toImpact.normalize());
+            if(proj>0 && proj<toImpact.length()) {
+              let perp = balls[k].position.clone().sub(cbPos.clone().add(toImpact.normalize().multiplyScalar(proj)));
+              if(perp.length()<ballRadius*2.08) {
+                blocked = true;
+                break;
+              }
+            }
+          }
+          let ballToPocket = ppos.clone().sub(ball.position).normalize();
+          let cueToBall = ball.position.clone().sub(cbPos).normalize();
+          let angle = ballToPocket.dot(cueToBall);
+          if(angle<0.8) continue;
+          if(!blocked && dist < bestDist) {
+            bestDist = dist;
+            best = {ball: ball, impact: impactPoint, pocket: ppos, dir: cueToImpact.normalize(), ballIdx:ballIdx};
+            bestPocket = j;
+            found = true;
+          }
+        }
+      }
+      if (!found) {
+        let avail = balls.slice(1,15).filter(b=>b && !b.userData.pocketed && ballColorType(balls.indexOf(b))!=="black");
+        if(avail.length===0 && !balls[15].userData.pocketed) avail = [balls[15]];
+        let ball = avail[Math.floor(Math.random()*avail.length)];
+        let dir = ball.position.clone().sub(cbPos).normalize();
+        best = {ball: ball, impact: ball.position.clone(), pocket: null, dir: dir, ballIdx:balls.indexOf(ball)};
+      }
+      // STRONGER SHOTS: More power for long shots and random "smash" chance
+      let baseStrength = 0.087 + Math.random()*0.025;
+      let powerBoost = (bestDist > 6) ? 0.10 : (bestDist > 3) ? 0.05 : 0.0;
+      let randomBoost = (Math.random() < 0.3) ? (Math.random()*0.10) : 0; // 30% chance to smash
+      let finalStrength = baseStrength + powerBoost + randomBoost;
+      let randAngle = (best && best.ballIdx===15|| (targets.length==1)) ? (Math.random()-0.5)*0.07 : (Math.random()-0.5)*0.16;
+      let axis = new THREE.Vector3(0,1,0);
+      best.dir.applyAxisAngle(axis, randAngle);
+      aiShotPlanned = {direction: best.dir, strength: finalStrength};
+      setTimeout(() => {
+        if (arrowHelper) scene.remove(arrowHelper);
+        arrowHelper = new THREE.ArrowHelper(aiShotPlanned.direction, cueBall.position, 2.8, 0xff00ff, 0.33, 0.3);
+        scene.add(arrowHelper);
+        setTimeout(() => {
+          if (arrowHelper) {scene.remove(arrowHelper); arrowHelper = null;}
+          cueBall.userData.velocity.add(aiShotPlanned.direction.clone().multiplyScalar(aiShotPlanned.strength));
+          cueBall.userData.velocity.y = 0;
+          ballsMoving = true;
+          aiShotPlanned = null;
+          aiThinking = false;
+          awaitingNextTurn = false;
+          setTimeout(waitForBallsStop, 700);
+        }, 1100);
+      }, 900);
+    }
+    // ----------- END AI LOGIC MODIFICATION -----------
+
+    function animate() {
+      requestAnimationFrame(animate);
+      updateBalls();
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    initScene();
+    animate();
+  </script>
 </body>
 </html>
